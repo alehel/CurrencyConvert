@@ -1,4 +1,4 @@
-
+package currencyconverter;
 
 import java.io.*;
 import java.net.*;
@@ -50,7 +50,7 @@ public class Server {
     private static String[][] getCurrencyRates() {
         String[][] currencies = null;
         try {
-            BufferedReader br = new BufferedReader(new FileReader("eurofxref.csv"));
+            BufferedReader br = new BufferedReader(new FileReader("src/currencyconverter/eurofxref.csv"));
 
             // Get currency codes
             String line = br.readLine();

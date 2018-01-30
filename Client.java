@@ -1,4 +1,4 @@
-
+package currencyconverter;
 
 import java.io.*;
 import java.net.*;
@@ -26,8 +26,10 @@ public class Client {
                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
                 BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));) 
         {
+            System.out.println(in.readLine());
+            
             boolean keepRunning = true;
-            do {
+            while(keepRunning) {
                 // Get the request from the user.
                 System.out.print("Please enter currency query. Enter q to exit: ");
                 request = stdIn.readLine();
@@ -39,7 +41,7 @@ public class Client {
                 } else {
                     keepRunning = false;
                 }
-            } while (keepRunning);
+            }
 
         } catch (UnknownHostException e) {
             System.err.println("Unknown host " + hostName);

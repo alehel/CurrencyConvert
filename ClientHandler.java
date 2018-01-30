@@ -1,4 +1,4 @@
-
+package currencyconverter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,6 +39,10 @@ public class ClientHandler extends Thread {
                         new InputStreamReader(connectSocket.getInputStream()));) {
             outputStream = out;
             inputStream = inputStream;
+            
+            System.out.println("[" + clientAddr + "] has connected to server.");
+            out.println("Connected to server. Type help for information on how to "
+                    + "use the application.");
 
             // Handle requests from client as long as input stream exists.
             String clientRequest;
@@ -50,6 +54,7 @@ public class ClientHandler extends Thread {
             connectSocket.close();
         } catch (IOException e) {
             System.err.println("There was an I/O exception with client " + clientAddr + ".");
+            System.err.println(e.getMessage());
         } finally {
             Server.decreaseConnectionCount();
         }
@@ -99,7 +104,7 @@ public class ClientHandler extends Thread {
      * 100USD2NOK.
      */
     private void performCurrencyConversion(String request) {
-        String regex = "^([0-9]+)([A-Z]+)[2]([A-Z]+)$";
+        String regex = "^([0-9]+)([A-Za-z]+)[2]([A-Za-z]+)$";
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(request);
         m.find();
@@ -125,7 +130,7 @@ public class ClientHandler extends Thread {
      * Checks if the client request is in a valid format.
      */
     private boolean regexCurrencyConversion(String request) {
-        String regex = "^[0-9]+[A-Z]+[2][A-Z]+$"; // example 500USD2NOK
+        String regex = "^[0-9]+[A-Za-z]+[2][A-Za-z]+$"; // example 500USD2NOK
         Pattern p = Pattern.compile(regex);
         Matcher m = p.matcher(request);
         if (m.find()) {
