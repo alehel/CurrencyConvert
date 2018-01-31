@@ -1,0 +1,2 @@
+Main-Class: Server.Server
+Class-Path: lib/commons-io-2.6.jar

@@ -1,14 +1,15 @@
-package currencyconverter;
+package Server;
 
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import org.apache.commons.io.FileUtils;
 
 /**
- * A simple TCP/IP server application which converts between currencies. 
- * Currency rates are based on data retrieved from the European Central Bank - Eurosystem.
+ * A simple TCP/IP server application which converts between currencies.
+ * Currency rates are based on data retrieved from the European Central Bank -
+ * Eurosystem.
  *
  * @author Aleksander Helgaker s199846
  */
@@ -23,7 +24,8 @@ public class Server {
     }
 
     /**
-     * Takes the args array and returns the user specified port number if one has been provided during launch. If not, resort to default, 5050.
+     * Takes the args array and returns the user specified port number if one
+     * has been provided during launch. If not, resort to default, 5050.
      */
     private static int determinePortNumber(String[] args) {
         int defaultPort = 5050;
@@ -45,12 +47,42 @@ public class Server {
     }
 
     /**
-     * Parses the csv file containing currency rates. Currencies are stored in String[][] currancyRates.
+     * Gets the latest currency conversion rates from Eurosystem and returns it
+     * as a csv file in a BufferedReader. If the latest file cannot be aquired
+     * from the Eurosystem server, a previous version is used.
+     *
+     * @return a BufferedReader containing the currency conversion rates in CSV
+     * format.
+     * @throws IOException
+     */
+    private static BufferedReader downloadCurrenciesAsBufferedReader() throws IOException {
+        // Download the file.
+        try {
+            URL url = new URL("https://www.ecb.europa.eu/stats/eurofxref/eurofxref.zip");
+            File zip = new File("eurofxref.zip"); // temporary storage location
+            FileUtils.copyURLToFile(url, zip);
+        } catch (IOException e) {
+            System.out.println("Unable to download latest currency rates. Resorting to older numbers.");
+        }
+
+        // Get the csv file from the zip.
+        ZipFile zipFile = new ZipFile("eurofxref.zip");
+        ZipEntry csvFile = zipFile.getEntry("eurofxref.csv");
+
+        // Place the csv file in a BufferedReader and return to caller.
+        BufferedReader br = new BufferedReader(new InputStreamReader(zipFile.getInputStream(csvFile)));
+        return br;
+    }
+
+    /**
+     * Parses the csv file containing currency rates. Currencies are stored in
+     * String[][] currancyRates.
      */
     private static String[][] getCurrencyRates() {
         String[][] currencies = null;
         try {
-            BufferedReader br = new BufferedReader(new FileReader("src/currencyconverter/eurofxref.csv"));
+            // Get the latest CSV of the currency as a buffered reader.
+            BufferedReader br = downloadCurrenciesAsBufferedReader();
 
             // Get currency codes
             String line = br.readLine();
@@ -58,7 +90,6 @@ public class Server {
                 throw new IOException("End of file reached while parsing!");
             }
             String[] country = line.split(", ");
-            country[0] = "EURO";
 
             // Get conversion rates
             line = br.readLine();
@@ -66,13 +97,15 @@ public class Server {
                 throw new IOException("End of file reached while parsing!");
             }
             String[] conversion = line.split(", ");
-            conversion[0] = "1";
 
             // Create the currencies array
             currencies = new String[2][country.length];
             currencies[0] = country;
             currencies[1] = conversion;
 
+            // CSV file does not contain information on the base currency.
+            // Add this to the table. 
+            currencies = addBaseCurrencyToTable("EURO", currencies);
         } catch (FileNotFoundException e) {
             System.err.println("Unable to read currency rate file!");
             e.printStackTrace();
@@ -86,10 +119,36 @@ public class Server {
     }
 
     /**
-     * Listen for and answer TCP requests. Create a separate thread of 
+     * Adds the base currency to the table. Base currency always has 1 as its
+     * currency.
+     *
+     * @param currencies a String specifying the name of the base currency.
+     * @return
+     */
+    private static String[][] addBaseCurrencyToTable(String baseCurrency, String[][] currencies) {
+        int length = currencies[0].length + 1;
+        String[][] newCurrencies = new String[2][length];
+
+        for (int i = 0; i < length - 1; i++) {
+            newCurrencies[0][i] = currencies[0][i];
+        }
+
+        for (int i = 0; i < length - 1; i++) {
+            newCurrencies[1][i] = currencies[1][i];
+        }
+
+        newCurrencies[0][length - 1] = baseCurrency;
+        newCurrencies[1][length - 1] = "1";
+
+        return newCurrencies;
+    }
+
+    /**
+     * Listen for and answer TCP requests. Create a separate thread of
      * ClientHandler class for each connected client.
      */
     private static void startServerApplication(int hostPort, String[][] currencyRates) {
+        System.out.println("Currencies last updated: " + currencyRates[1][0]);
         System.out.println("Listening for requests on port: " + hostPort);
 
         try (ServerSocket serverSocket = new ServerSocket(hostPort);) {
@@ -98,28 +157,28 @@ public class Server {
                 clientHandler.start();
             }
         } catch (IOException e) {
+            System.err.println("Could not aquire files from Eurosystem. Resorting old data.");
             System.err.println(e.getMessage());
         }
     }
-    
+
     /**
      * Used by ClientHandler to increase connection count.
      */
     public static void increaseConnectionCount() {
         activeConnections++;
     }
-    
+
     /**
      * Used by ClientHandler to decrease connection count.
      */
     public static void decreaseConnectionCount() {
         activeConnections--;
     }
-    
+
     /**
-     * 
-     * @return an int specifying the number of active
-     * connections.
+     *
+     * @return an int specifying the number of active connections.
      */
     public static int getConnectionCount() {
         return activeConnections;
