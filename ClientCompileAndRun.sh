@@ -1,4 +1,4 @@
 #! /bin/bash
-
-javac cfe Client.jar Client.Client Client/Client.class
-java -jar Client
+javac Client/Client.java
+jar cfe Client.jar Client.Client Client/Client.class
+java -jar Client.jar $1
