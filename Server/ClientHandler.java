@@ -39,10 +39,9 @@ public class ClientHandler extends Thread {
                         new InputStreamReader(connectSocket.getInputStream()));) {
             outputStream = out;
             inputStream = inputStream;
-            
+
             System.out.println("[" + clientAddr + "] has connected to server.");
-            out.println("Connected to server. Type help for information on how to "
-                    + "use the application.");
+            out.println("Connected");
 
             // Handle requests from client as long as input stream exists.
             String clientRequest;
@@ -50,8 +49,8 @@ public class ClientHandler extends Thread {
                 System.out.println("[" + clientAddr + "] Received request: " + clientRequest);
                 processRequest(clientRequest);
             }
-
             connectSocket.close();
+            System.out.println("[" + clientAddr + "] has disconnected from server.");
         } catch (IOException e) {
             System.err.println("There was an I/O exception with client " + clientAddr + ".");
             System.err.println(e.getMessage());
@@ -70,7 +69,7 @@ public class ClientHandler extends Thread {
             kill();
         } else if (request.equals("active")) { // get number of active users
             printResult("Number of active clients: " + Server.getConnectionCount());
-        } else if (request.matches("^([0-9]+)([A-Z]+)[2]([A-Z]+)$")) { // convert currencies
+        } else if (request.matches("^([0-9]+)([A-Za-z]+)[2]([A-Za-z]+)$")) { // convert currencies
             performCurrencyConversion(request);
         } else { // invalid request
             printResult("Request could not be processed. Invalid syntax.");
@@ -149,7 +148,7 @@ public class ClientHandler extends Thread {
     private boolean validCurrency(String currency) {
         // we start looking at indek 1 because index 0 is the date.
         for (int i = 0; i < currencyRates[0].length; i++) {
-            if (currencyRates[0][i].equals(currency)) {
+            if (currencyRates[0][i].equalsIgnoreCase(currency)) {
                 return true;
             }
         }
@@ -180,7 +179,7 @@ public class ClientHandler extends Thread {
         float returnValue = 1.0f;
 
         for (int i = 0; i < currencyRates[0].length; i++) {
-            if (currencyRates[0][i].equals(currency)) {
+            if (currencyRates[0][i].equalsIgnoreCase(currency)) {
                 returnValue = Float.valueOf(currencyRates[1][i]);
             }
         }

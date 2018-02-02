@@ -20,20 +20,21 @@ public class Client {
 
         // BufferedReader for user input
         BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-        
+
         try ( // auto close resources.
                 Socket clientSocket = new Socket(hostName, portNumber);
                 PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));) 
+                BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));)
         {
-            System.out.println(in.readLine());
-            
+          // Check that connection was successfull
+          if(in.readLine().equals("Connected")) {
+
             boolean keepRunning = true;
             while(keepRunning) {
                 // Get the request from the user.
                 System.out.print("Please enter currency query. Enter q to exit: ");
                 request = stdIn.readLine();
-                
+
                 // If user entered q, disconnect from server and end the application
                 if (!request.equals("q")) {
                     out.println(request);
@@ -42,6 +43,12 @@ public class Client {
                     keepRunning = false;
                 }
             }
+
+            clientSocket.close();
+          } else {
+            System.out.println("Error connecting to server.");
+            System.exit(1);
+          }
 
         } catch (UnknownHostException e) {
             System.err.println("Unknown host " + hostName);
