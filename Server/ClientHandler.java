@@ -18,7 +18,6 @@ public class ClientHandler extends Thread {
 
     Socket connectSocket;
     String clientAddr; // ip address of this client.
-    int serverPort, clientPort;
     String[][] currencyRates;
     PrintWriter outputStream; // sends string information to the client
     BufferedReader inputStream; // gets string information from the client
@@ -26,10 +25,7 @@ public class ClientHandler extends Thread {
     public ClientHandler(Socket connectSocket, String[][] currencyRates) {
         this.connectSocket = connectSocket;
         clientAddr = connectSocket.getInetAddress().getHostAddress();
-        clientPort = connectSocket.getPort();
-        serverPort = connectSocket.getLocalPort();
         this.currencyRates = currencyRates;
-
         Server.increaseConnectionCount();
     }
 
@@ -38,7 +34,7 @@ public class ClientHandler extends Thread {
                 BufferedReader in = inputStream = new BufferedReader(
                         new InputStreamReader(connectSocket.getInputStream()));) {
             outputStream = out;
-            inputStream = inputStream;
+            inputStream = in;
 
             System.out.println("[" + clientAddr + "] has connected to server.");
             out.println("Connected");
