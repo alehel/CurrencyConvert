@@ -1,6 +1,6 @@
 # CurrencyConvert
 
-Currency converter using Java sockets. Client sends request to server, and server responds. Allows multiple connections.
+A simple server and client application for performing currency conversions. Server and client communicate using a TCP connection and the Server is capable of handling multiple clients at once. Currency rates are automatically downloaded from the European Central Bank when launched. Remember to edit the Client.java file to reflect the Server applications IP address. Alternatively, use 127.0.0.1 if both are running on the same machine. 
 
 ## To compile and run Server
 
